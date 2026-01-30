@@ -3,16 +3,16 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from openai import OpenAI
 
 # ======================
-# ENVIRONMENT VARIABLES
+# ENV VARIABLES
 # ======================
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not TELEGRAM_BOT_TOKEN:
-    raise RuntimeError("TELEGRAM_BOT_TOKEN is missing")
+    raise RuntimeError("Missing TELEGRAM_BOT_TOKEN")
 
 if not OPENAI_API_KEY:
-    raise RuntimeError("OPENAI_API_KEY is missing")
+    raise RuntimeError("Missing OPENAI_API_KEY")
 
 # ======================
 # OPENAI CLIENT
@@ -20,18 +20,18 @@ if not OPENAI_API_KEY:
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ======================
-# TELEGRAM COMMANDS
+# COMMANDS
 # ======================
 def start(update, context):
     update.message.reply_text(
         "🤖 Bot is online.\n"
-        "Send a message and I’ll respond."
+        "Send any message and I will reply."
     )
 
 def help_command(update, context):
     update.message.reply_text(
-        "Just send a message.\n"
-        "Later this will become an options bot."
+        "Just send text.\n"
+        "This bot uses OpenAI to respond."
     )
 
 def handle_message(update, context):
@@ -40,20 +40,25 @@ def handle_message(update, context):
     try:
         response = client.responses.create(
             model="gpt-4.1-mini",
+            instructions=(
+                "You are a helpful, friendly assistant. "
+                "Answer clearly and concisely."
+            ),
             input=user_text
         )
 
-        reply = response.output_text.strip()
+        reply = response.output_text
+
         if not reply:
-            reply = "I didn’t get a response. Try again."
+            reply = "No response received. Try again."
 
         update.message.reply_text(reply)
 
     except Exception as e:
-        print("ERROR:", e)
+        print("OPENAI ERROR:", e)
         update.message.reply_text(
             "⚠️ Error talking to OpenAI.\n"
-            "Try again in a moment."
+            "Please try again."
         )
 
 # ======================
@@ -71,4 +76,4 @@ dispatcher.add_handler(
 print("🤖 Bot started and listening...")
 
 updater.start_polling()
-updater.idle()  # 🚨 DO NOT REMOVE
+updater.idle()
