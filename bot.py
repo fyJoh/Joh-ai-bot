@@ -3,16 +3,16 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from openai import OpenAI
 
 # ======================
-# ENV VARIABLES
+# ENVIRONMENT VARIABLES
 # ======================
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not TELEGRAM_BOT_TOKEN:
-    raise RuntimeError("Missing TELEGRAM_BOT_TOKEN")
+    raise RuntimeError("TELEGRAM_BOT_TOKEN is missing")
 
 if not OPENAI_API_KEY:
-    raise RuntimeError("Missing OPENAI_API_KEY")
+    raise RuntimeError("OPENAI_API_KEY is missing")
 
 # ======================
 # OPENAI CLIENT
@@ -24,40 +24,32 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 # ======================
 def start(update, context):
     update.message.reply_text(
-        "🤖 Bot is online.\n"
-        "Send any message and I will reply."
-    )
-
-def help_command(update, context):
-    update.message.reply_text(
-        "Just send text.\n"
-        "This bot uses OpenAI to respond."
+        "Hey I’m Joh, what’s up? 😎"
     )
 
 def handle_message(update, context):
     user_text = update.message.text
 
     try:
+        # This is the MOST reliable OpenAI call
         response = client.responses.create(
             model="gpt-4.1-mini",
-            instructions=(
-                "You are a helpful, friendly assistant. "
-                "Answer clearly and concisely."
-            ),
             input=user_text
         )
 
         reply = response.output_text
 
-        if not reply:
-            reply = "No response received. Try again."
+        if not reply or reply.strip() == "":
+            reply = "I didn’t get a response. Try again."
 
         update.message.reply_text(reply)
 
     except Exception as e:
         print("OPENAI ERROR:", e)
-        update.message.reply_text(str(e))
-
+        update.message.reply_text(
+            "⚠️ Something went wrong.\n"
+            "If this keeps happening, contact @johhek on Instagram."
+        )
 
 # ======================
 # BOT SETUP
@@ -66,7 +58,6 @@ updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(CommandHandler("help", help_command))
 dispatcher.add_handler(
     MessageHandler(Filters.text & ~Filters.command, handle_message)
 )
