@@ -2,7 +2,9 @@ import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from openai import OpenAI
 
-# --- Get secrets from Railway ---
+# ======================
+# ENVIRONMENT VARIABLES
+# ======================
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -12,42 +14,61 @@ if not TELEGRAM_BOT_TOKEN:
 if not OPENAI_API_KEY:
     raise RuntimeError("OPENAI_API_KEY is missing")
 
-# --- OpenAI client ---
+# ======================
+# OPENAI CLIENT
+# ======================
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-# --- Telegram handlers ---
+# ======================
+# TELEGRAM COMMANDS
+# ======================
 def start(update, context):
     update.message.reply_text(
-        "👋 Hi! I'm alive.\nSend me a message and I'll reply."
+        "🤖 Bot is online.\n"
+        "Send a message and I’ll respond."
+    )
+
+def help_command(update, context):
+    update.message.reply_text(
+        "Just send a message.\n"
+        "Later this will become an options bot."
     )
 
 def handle_message(update, context):
     user_text = update.message.text
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": user_text},
-            ],
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            input=user_text
         )
 
-        reply = response.choices[0].message.content
+        reply = response.output_text.strip()
+        if not reply:
+            reply = "I didn’t get a response. Try again."
+
         update.message.reply_text(reply)
 
     except Exception as e:
-        update.message.reply_text("⚠️ Something went wrong.")
-        print(e)
+        print("ERROR:", e)
+        update.message.reply_text(
+            "⚠️ Error talking to OpenAI.\n"
+            "Try again in a moment."
+        )
 
-# --- Start bot ---
+# ======================
+# BOT SETUP
+# ======================
 updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+dispatcher.add_handler(CommandHandler("help", help_command))
+dispatcher.add_handler(
+    MessageHandler(Filters.text & ~Filters.command, handle_message)
+)
 
 print("🤖 Bot started and listening...")
 
 updater.start_polling()
-updater.idle()  # 🚨 THIS KEEPS THE BOT RUNNING (DO NOT REMOVE)
+updater.idle()  # 🚨 DO NOT REMOVE
