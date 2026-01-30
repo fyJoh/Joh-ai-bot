@@ -4,7 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler, MessageHandler, Filters
 
 # Replace with your Telegram bot token (get from @botfather)
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+BOT_TOKEN = "8306193545:AAHUxO8NsAYeDeHB7ErIscNzvozas22BUxY"
 
 # Replace with your AI voice API URL and key (e.g., ElevenLabs or Google TTS)
 VOICE_API_URL = "https://api.elevenlabs.io/v1/text-to-speech/your_voice_id"
