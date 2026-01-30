@@ -56,10 +56,8 @@ def handle_message(update, context):
 
     except Exception as e:
         print("OPENAI ERROR:", e)
-        update.message.reply_text(
-            "⚠️ Error talking to OpenAI.\n"
-            "Please try again."
-        )
+        update.message.reply_text(str(e))
+
 
 # ======================
 # BOT SETUP
